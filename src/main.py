@@ -10,6 +10,6 @@ bodies = [Body(np.random.random() * 200, np.random.random() * 200, 10) for i in 
 
 for body in bodies:
     tree.insert_body(body)
-tree.plot()
+tree.plot(True)
 plt.show()
 plt.cla()

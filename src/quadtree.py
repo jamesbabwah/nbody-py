@@ -13,6 +13,10 @@ from body import Body
 class Quad:
     """
     Contains the dimensions of each bounding box for Nodes making up the Quadtree.
+
+    Attributes:
+        r: 2D coordinate of lower left corner
+        length: side length of quad
     """
     def __init__(self, rx: float, ry: float, length: float) -> None:
         """
@@ -109,47 +113,51 @@ class QuadTreeNode:
                 self.com = body.r
                 self.mass = body.mass
             else:
-                self.is_leaf = False
-                self.sw = QuadTreeNode(self.quad.sw())
-                self.se = QuadTreeNode(self.quad.se())
-                self.nw = QuadTreeNode(self.quad.nw())
-                self.ne = QuadTreeNode(self.quad.ne())
-
-                if self.body.in_quad(self.sw.quad):
-                    self.sw.insert_body(self.body)
-                if self.body.in_quad(self.se.quad):
-                    self.se.insert_body(self.body)
-                if self.body.in_quad(self.nw.quad):
-                    self.nw.insert_body(self.body)
-                if self.body.in_quad(self.ne.quad):
-                    self.ne.insert_body(self.body)
+                self.subdivide()
+                self.findquad(self.body).insert_body(self.body)
                 self.body = None
 
-                if body.in_quad(self.sw.quad):
-                    self.sw.insert_body(body)
-                if body.in_quad(self.se.quad):
-                    self.se.insert_body(body)
-                if body.in_quad(self.nw.quad):
-                    self.nw.insert_body(body)
-                if body.in_quad(self.ne.quad):
-                    self.ne.insert_body(body)
+                self.findquad(body).insert_body(body)
 
                 self.com = (self.mass * self.com + body.mass * body.r)/(self.mass + body.mass)
                 self.mass += body.mass
         else:
-            assert self.sw is not None
-            assert self.se is not None
-            assert self.ne is not None
-            assert self.nw is not None
+            self.findquad(body).insert_body(body)
 
-            if body.in_quad(self.sw.quad):
-                self.sw.insert_body(body)
-            if body.in_quad(self.se.quad):
-                self.se.insert_body(body)
-            if body.in_quad(self.nw.quad):
-                self.nw.insert_body(body)
-            if body.in_quad(self.ne.quad):
-                self.ne.insert_body(body)
+
+    def findquad(self, body):
+        """
+        Finds the child node of self that body belongs to
+
+        :param body: the body that is to be located in one of the child nodes.
+        """
+        assert self.sw is not None
+        assert self.se is not None
+        assert self.ne is not None
+        assert self.nw is not None
+
+        if body.in_quad(self.sw.quad):
+            return self.sw
+        if body.in_quad(self.se.quad):
+            return self.se
+        if body.in_quad(self.nw.quad):
+            return self.nw
+        if body.in_quad(self.ne.quad):
+            return self.ne
+
+        # No quad found
+        raise RuntimeError("Insertion of body failed")
+
+    def subdivide(self) -> None:
+        """
+        Creates child members of self
+        """
+        self.is_leaf = False
+        self.sw = QuadTreeNode(self.quad.sw())
+        self.se = QuadTreeNode(self.quad.se())
+        self.nw = QuadTreeNode(self.quad.nw())
+        self.ne = QuadTreeNode(self.quad.ne())
+
 
     def plot(self, plotquads: bool=False):
         """
@@ -167,7 +175,7 @@ class QuadTreeNode:
             assert self.se is not None
             assert self.ne is not None
             assert self.nw is not None
-            self.sw.plot()
-            self.se.plot()
-            self.nw.plot()
-            self.ne.plot()
+            self.sw.plot(plotquads)
+            self.se.plot(plotquads)
+            self.nw.plot(plotquads)
+            self.ne.plot(plotquads)
