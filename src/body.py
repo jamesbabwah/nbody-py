@@ -39,8 +39,8 @@ class Body:
 
         :param quad: the quad to be checked.
         """
-        return ((quad.r[0] < self.r[0] and quad.r[0] + quad.length > self.r[0]) and
-            (quad.r[1] < self.r[1] and quad.r[1] + quad.length > self.r[1]))
+        return ((quad.r[0] <= self.r[0] and quad.r[0] + quad.length >= self.r[0]) and
+            (quad.r[1] <= self.r[1] and quad.r[1] + quad.length >= self.r[1]))
 
 
     def plot(self):

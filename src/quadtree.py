@@ -119,11 +119,11 @@ class QuadTreeNode:
 
                 self.findquad(body).insert_body(body)
 
-                self.com = (self.mass * self.com + body.mass * body.r)/(self.mass + body.mass)
-                self.mass += body.mass
         else:
             self.findquad(body).insert_body(body)
 
+        self.com = (self.mass * self.com + body.mass * body.r)/(self.mass + body.mass)
+        self.mass += body.mass
 
     def findquad(self, body):
         """
