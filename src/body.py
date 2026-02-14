@@ -5,7 +5,7 @@ spatial partitioning and plotting bodies.
 """
 
 import numpy as np
-import matplotlib.pyplot as plt
+from renderer.abstract_renderer import AbstractRenderer
 
 
 class Body:
@@ -43,8 +43,10 @@ class Body:
             (quad.r[1] <= self.r[1] and quad.r[1] + quad.length >= self.r[1]))
 
 
-    def plot(self):
+    def plot(self, renderer: AbstractRenderer):
         """
         Plots body to the screen.
+
+        :param renderer: Renderer used for plotting visuals.
         """
-        plt.scatter(self.r[0], self.r[1], 4.0, 'black')
+        renderer.draw_body(self.r[0], self.r[1])

@@ -6,9 +6,10 @@ QuadTreeNode utilizes Quad for keeping the dimensions of each node and subdivisi
 of nodes.
 """
 
-import matplotlib.pyplot as plt
 import numpy as np
+
 from body import Body
+from renderer.abstract_renderer import AbstractRenderer
 
 class Quad:
     """
@@ -29,18 +30,13 @@ class Quad:
         self.r = np.array([rx, ry])
         self.length = length
 
-    def plot(self):
+    def plot(self, renderer: AbstractRenderer):
         """
         Plots the quad to the screen.
+
+        :param renderer: Renderer used for plotting visuals.
         """
-        plt.plot([self.r[0], self.r[0] + self.length],
-                 [self.r[1], self.r[1]], 'g')
-        plt.plot([self.r[0] + self.length, self.r[0] + self.length],
-                 [self.r[1], self.r[1] + self.length], 'g')
-        plt.plot([self.r[0], self.r[0]], [self.r[1],
-                                          self.r[1] + self.length], 'g')
-        plt.plot([self.r[0], self.r[0] + self.length],
-                 [self.r[1] + self.length, self.r[1] + self.length], 'g')
+        renderer.draw_grid(self.r[0], self.r[1], self.length)
 
     def sw(self):
         """
@@ -159,23 +155,24 @@ class QuadTreeNode:
         self.ne = QuadTreeNode(self.quad.ne())
 
 
-    def plot(self, plotquads: bool=False):
+    def plot(self, renderer: AbstractRenderer, plotquads: bool=False):
         """
         Plots body and (optionally) the bounding box of quads.
 
+        :param renderer: Renderer used for plotting visuals.
         :param plotquads: Defines if quads should be visualised.
         """
         if self.body is not None:
-            self.body.plot()
+            self.body.plot(renderer)
         if self.is_leaf:
             if plotquads:
-                self.quad.plot()
+                self.quad.plot(renderer)
         else:
             assert self.sw is not None
             assert self.se is not None
             assert self.ne is not None
             assert self.nw is not None
-            self.sw.plot(plotquads)
-            self.se.plot(plotquads)
-            self.nw.plot(plotquads)
-            self.ne.plot(plotquads)
+            self.sw.plot(renderer, plotquads)
+            self.se.plot(renderer, plotquads)
+            self.nw.plot(renderer, plotquads)
+            self.ne.plot(renderer, plotquads)
