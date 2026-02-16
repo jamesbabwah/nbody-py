@@ -4,7 +4,7 @@
 from typing import override
 import pygame as pg
 
-from .abstract_renderer import AbstractRenderer #todo: fix relative import bs
+from nbody.renderer.abstract_renderer import AbstractRenderer
 
 
 class PGRenderer(AbstractRenderer):
@@ -13,6 +13,7 @@ class PGRenderer(AbstractRenderer):
 
     def __init__(self, window_len: int,
                  window_height: int,
+                 *,
                  flags: int = 0,
                  depth: int = 0,
                  display: int = 0,

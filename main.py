@@ -1,10 +1,9 @@
-#pylint: disable=C0114
+#pylint: disable=missing-module-docstring
 
 import numpy as np
 
-from quadtree import Quad, QuadTreeNode
-from body import Body
-from renderer.pgrenderer import PGRenderer
+from nbody import Quad, QuadTreeNode, Body
+from nbody.renderer.pgrenderer import PGRenderer
 
 
 renderer = PGRenderer(600, 600)
@@ -15,5 +14,7 @@ bodies = [Body(np.random.random() * 600, np.random.random() * 600, 10) for i in 
 
 for body in bodies:
     tree.insert_body(body)
-tree.plot(renderer)
+tree.plot(renderer, True)
 renderer.update()
+
+input()

@@ -8,8 +8,8 @@ of nodes.
 
 import numpy as np
 
-from body import Body
-from renderer.abstract_renderer import AbstractRenderer
+from nbody.body import Body
+from nbody.renderer.abstract_renderer import AbstractRenderer
 
 class Quad:
     """

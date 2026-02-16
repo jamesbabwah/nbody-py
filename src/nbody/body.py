@@ -5,7 +5,7 @@ spatial partitioning and plotting bodies.
 """
 
 import numpy as np
-from renderer.abstract_renderer import AbstractRenderer
+from nbody.renderer.abstract_renderer import AbstractRenderer
 
 
 class Body:
@@ -18,7 +18,7 @@ class Body:
         F: 2 element array containing forces acting on body in x and y directions.
 
     """
-    def __init__(self, x, y, m, vx = 0.0, vy = 0.0) -> None:
+    def __init__(self, x, y, m, *, vx = 0.0, vy = 0.0) -> None:
         """
         Initializes body with a position, mass, and optional starting velocity.
 
