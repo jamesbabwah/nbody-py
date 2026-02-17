@@ -19,7 +19,7 @@ class Quad:
         r: 2D coordinate of lower left corner
         length: side length of quad
     """
-    def __init__(self, rx: float, ry: float, length: float) -> None:
+    def __init__(self, x: float, y: float, length: float) -> None:
         """
         Initializes the quad with the location of the South West corner and side length.
 
@@ -27,8 +27,12 @@ class Quad:
         :param ry: y position of bottom side of quad.
         :param length: length of quad side.
         """
-        self.r = np.array([rx, ry])
+        self.x1, self.x2 = x, x+length
+        self.y1, self.y2 = y, y+length
+        self.midx = x + length/2
+        self.midy = y + length/2
         self.length = length
+        self.halflength = length/2
 
     def plot(self, renderer: AbstractRenderer):
         """
@@ -36,28 +40,28 @@ class Quad:
 
         :param renderer: Renderer used for plotting visuals.
         """
-        renderer.draw_grid(self.r[0], self.r[1], self.length)
+        renderer.draw_grid(self.x1, self.y1, self.length)
 
     def sw(self):
         """
         Returns South West region of self.
         """
-        return Quad(self.r[0], self.r[1], self.length/2.0)
+        return Quad(self.x1, self.y1, self.halflength)
     def se(self):
         """
         Returns South East region of self.
         """
-        return Quad(self.r[0] + self.length/2.0, self.r[1], self.length/2.0)
+        return Quad(self.midx, self.y1, self.halflength)
     def nw(self):
         """
         Returns North West region of self.
         """
-        return Quad(self.r[0], self.r[1] + self.length/2.0, self.length/2.0)
+        return Quad(self.x1, self.midy, self.halflength)
     def ne(self):
         """
         Returns North East region of self.
         """
-        return Quad(self.r[0] + self.length/2.0, self.r[1] + self.length/2.0, self.length/2.0)
+        return Quad(self.midx, self.midy, self.halflength)
 
 
 class QuadTreeNode:
@@ -121,7 +125,7 @@ class QuadTreeNode:
         self.com = (self.mass * self.com + body.mass * body.r)/(self.mass + body.mass)
         self.mass += body.mass
 
-    def findquad(self, body):
+    def findquad(self, body: Body):
         """
         Finds the child node of self that body belongs to
 
@@ -132,17 +136,19 @@ class QuadTreeNode:
         assert self.ne is not None
         assert self.nw is not None
 
-        if body.in_quad(self.sw.quad):
-            return self.sw
-        if body.in_quad(self.se.quad):
-            return self.se
-        if body.in_quad(self.nw.quad):
-            return self.nw
-        if body.in_quad(self.ne.quad):
-            return self.ne
+        if body.x >= self.quad.x1 + self.quad.length/2:
+            if body.y >= self.quad.y1 + self.quad.length/2:
+                return self.ne
+            else:
+                return self.se
+        else:
+            if body.y >= self.quad.y1 + self.quad.length/2:
+                return self.nw
+            else:
+                return self.sw
 
         # No quad found
-        raise RuntimeError("Insertion of body failed")
+        raise RuntimeError("Failed to find quad containing body")
 
     def subdivide(self) -> None:
         """

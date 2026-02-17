@@ -12,7 +12,9 @@ class Body:
     """A body to be simulated.
 
     Attributes:
-        r: 2 element array containing x and y positions of body.
+        x: x position of body
+        y: y position of body
+        r: np.array([x,y])
         mass: floating point mass of body.
         v: 2 element array containing velocity of body in x and y directions.
         F: 2 element array containing forces acting on body in x and y directions.
@@ -29,6 +31,8 @@ class Body:
         :param vy: initial velocity of body in y direction.
         """
         self.r = np.array([x, y])
+        self.x = x
+        self.y = y
         self.v = np.array([vx, vy])
         self.mass = m
         self.force = np.array([0.0, 0.0])
@@ -39,8 +43,8 @@ class Body:
 
         :param quad: the quad to be checked.
         """
-        return ((quad.r[0] <= self.r[0] and quad.r[0] + quad.length >= self.r[0]) and
-            (quad.r[1] <= self.r[1] and quad.r[1] + quad.length >= self.r[1]))
+        return ((quad.x1 <= self.x and quad.x2 >= self.x) and
+            (quad.y1 <= self.y and quad.y2 >= self.y))
 
 
     def plot(self, renderer: AbstractRenderer):
