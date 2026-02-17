@@ -29,10 +29,24 @@ class Quad:
         """
         self.x1, self.x2 = x, x+length
         self.y1, self.y2 = y, y+length
-        self.midx = x + length/2
-        self.midy = y + length/2
         self.length = length
-        self.halflength = length/2
+        self.sw = None
+        self.se = None
+        self.nw = None
+        self.ne = None
+
+    def create_children(self):
+        """
+        Creates ne, nw, se, and sw quads for subdivision.
+        """
+        midx = self.x1 + self.length/2
+        midy = self.y1 + self.length/2
+        halflength = self.length/2
+
+        self.sw = Quad(self.x1, self.y1, halflength)
+        self.se = Quad(midx, self.y1, halflength)
+        self.nw = Quad(self.x1, midy, halflength)
+        self.ne = Quad(midx, midy, halflength)
 
     def plot(self, renderer: AbstractRenderer):
         """
@@ -41,27 +55,6 @@ class Quad:
         :param renderer: Renderer used for plotting visuals.
         """
         renderer.draw_grid(self.x1, self.y1, self.length)
-
-    def sw(self):
-        """
-        Returns South West region of self.
-        """
-        return Quad(self.x1, self.y1, self.halflength)
-    def se(self):
-        """
-        Returns South East region of self.
-        """
-        return Quad(self.midx, self.y1, self.halflength)
-    def nw(self):
-        """
-        Returns North West region of self.
-        """
-        return Quad(self.x1, self.midy, self.halflength)
-    def ne(self):
-        """
-        Returns North East region of self.
-        """
-        return Quad(self.midx, self.midy, self.halflength)
 
 
 class QuadTreeNode:
@@ -155,10 +148,12 @@ class QuadTreeNode:
         Creates child members of self
         """
         self.is_leaf = False
-        self.sw = QuadTreeNode(self.quad.sw())
-        self.se = QuadTreeNode(self.quad.se())
-        self.nw = QuadTreeNode(self.quad.nw())
-        self.ne = QuadTreeNode(self.quad.ne())
+
+        self.quad.create_children()
+        self.sw = QuadTreeNode(self.quad.sw)
+        self.se = QuadTreeNode(self.quad.se)
+        self.nw = QuadTreeNode(self.quad.nw)
+        self.ne = QuadTreeNode(self.quad.ne)
 
 
     def plot(self, renderer: AbstractRenderer, plotquads: bool=False):
