@@ -19,6 +19,10 @@ class Quad:
         r: 2D coordinate of lower left corner
         length: side length of quad
     """
+    __slots__ = (
+        "x1", "x2", "y1", "y2", "length",
+        "midx", "midy", "se", "sw", "ne", "nw"
+    )
     def __init__(self, x: float, y: float, length: float) -> None:
         """
         Initializes the quad with the location of the South West corner and side length.
@@ -30,6 +34,9 @@ class Quad:
         self.x1, self.x2 = x, x+length
         self.y1, self.y2 = y, y+length
         self.length = length
+        self.midx = self.x1 + self.length/2
+        self.midy = self.y1 + self.length/2
+
         self.sw = None
         self.se = None
         self.nw = None
@@ -39,14 +46,13 @@ class Quad:
         """
         Creates ne, nw, se, and sw quads for subdivision.
         """
-        midx = self.x1 + self.length/2
-        midy = self.y1 + self.length/2
+
         halflength = self.length/2
 
         self.sw = Quad(self.x1, self.y1, halflength)
-        self.se = Quad(midx, self.y1, halflength)
-        self.nw = Quad(self.x1, midy, halflength)
-        self.ne = Quad(midx, midy, halflength)
+        self.se = Quad(self.midx, self.y1, halflength)
+        self.nw = Quad(self.x1, self.midy, halflength)
+        self.ne = Quad(self.midx, self.midy, halflength)
 
     def plot(self, renderer: AbstractRenderer):
         """
@@ -72,6 +78,11 @@ class QuadTreeNode:
         nw: QuadTreeNode instance representing the North West child of this node.
         ne: QuadTreeNode instance representing the North East child of this node.
     """
+    __slots__ = (
+        "quad", "sw", "se", "nw", "ne",
+        "body", "is_leaf", "mass", "cx", "cy"
+    )
+
     def __init__(self, quad : Quad) -> None:
         """
         Initializes a quadtree node with the quad dimensions.
@@ -87,7 +98,8 @@ class QuadTreeNode:
         self.is_leaf = True
 
         self.mass = 0.0
-        self.com = np.array([0, 0])
+        self.cx = 0.0
+        self.cy = 0.0
 
     def insert_body(self, body: Body) -> None:
         """
@@ -100,23 +112,23 @@ class QuadTreeNode:
 
         :param body: body to be inserted.
         """
+        # update centre of mass
+        new_mass = self.mass + body.mass
+        self.cx = (self.mass * self.cx + body.mass * body.x)/new_mass
+        self.cy = (self.mass * self.cy + body.mass * body.x)/new_mass
+        self.mass = new_mass
+
         if self.is_leaf:
             if self.body is None:
                 self.body = body
-                self.com = body.r
-                self.mass = body.mass
+                return
             else:
                 self.subdivide()
                 self.findquad(self.body).insert_body(self.body)
                 self.body = None
 
-                self.findquad(body).insert_body(body)
+        self.findquad(body).insert_body(body)
 
-        else:
-            self.findquad(body).insert_body(body)
-
-        self.com = (self.mass * self.com + body.mass * body.r)/(self.mass + body.mass)
-        self.mass += body.mass
 
     def findquad(self, body: Body):
         """
@@ -129,13 +141,13 @@ class QuadTreeNode:
         assert self.ne is not None
         assert self.nw is not None
 
-        if body.x >= self.quad.x1 + self.quad.length/2:
-            if body.y >= self.quad.y1 + self.quad.length/2:
+        if body.x >= self.quad.midx:
+            if body.y >= self.quad.midy:
                 return self.ne
             else:
                 return self.se
         else:
-            if body.y >= self.quad.y1 + self.quad.length/2:
+            if body.y >= self.quad.midy:
                 return self.nw
             else:
                 return self.sw
