@@ -115,7 +115,7 @@ class QuadTreeNode:
         # update centre of mass
         new_mass = self.mass + body.mass
         self.cx = (self.mass * self.cx + body.mass * body.x)/new_mass
-        self.cy = (self.mass * self.cy + body.mass * body.x)/new_mass
+        self.cy = (self.mass * self.cy + body.mass * body.y)/new_mass
         self.mass = new_mass
 
         if self.is_leaf:
