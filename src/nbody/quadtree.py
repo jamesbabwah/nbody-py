@@ -38,7 +38,9 @@ class QuadTreeNode:
         """
         Initializes a quadtree node with the quad dimensions.
 
-        :param quad: the dimensions of the quad of this node.
+        :param x: the x coordinate of the bottom left corner
+        :param y: the y coordinate of the bottom left corner
+        :param length: the length of the side of the quad
         """
 
         self.x1, self.x2 = x, x+length
@@ -67,21 +69,45 @@ class QuadTreeNode:
         :param body: body to be inserted.
         """
         # update centre of mass
-        new_mass = self.mass + body.mass
-        self.cx = (self.mass * self.cx + body.mass * body.x)/new_mass
-        self.cy = (self.mass * self.cy + body.mass * body.y)/new_mass
+        m = self.mass
+        bm = body.mass
+        x = body.x
+        y = body.y
+        new_mass = m + bm
+        self.cx = (m * self.cx + bm * x)/new_mass
+        self.cy = (m * self.cy + bm * y)/new_mass
         self.mass = new_mass
 
+        midx = (self.x1 + self.x2)/2
+        midy = (self.y1 + self.y2)/2
         if self.is_leaf:
             if self.body is None:
                 self.body = body
                 return
             else:
                 self.subdivide()
-                self.findquad(self.body).insert_body(self.body)
+                if self.body.x >= midx:
+                    if self.body.y >= midy:
+                        self.ne.insert_body(self.body)
+                    else:
+                        self.se.insert_body(self.body)
+                else:
+                    if self.body.y >= midy:
+                        self.nw.insert_body(self.body)
+                    else:
+                        self.sw.insert_body(self.body)
                 self.body = None
 
-        self.findquad(body).insert_body(body)
+        if body.x >= midx:
+            if body.y >= midy:
+                self.ne.insert_body(body)
+            else:
+                self.se.insert_body(body)
+        else:
+            if body.y >= midy:
+                self.nw.insert_body(body)
+            else:
+                self.sw.insert_body(body)
 
 
     def findquad(self, body: Body):
@@ -113,7 +139,7 @@ class QuadTreeNode:
 
     def subdivide(self) -> None:
         """
-        Creates child members of self
+        Creates child nodes of self
         """
         self.is_leaf = False
 
@@ -131,7 +157,7 @@ class QuadTreeNode:
         Plots body and (optionally) the bounding box of quads.
 
         :param renderer: Renderer used for plotting visuals.
-        :param plotquads: Defines if quads should be visualised.
+        :param plotquads: Defines if bounding boxes should be visualised.
         """
         if self.body is not None:
             self.body.plot(renderer)
