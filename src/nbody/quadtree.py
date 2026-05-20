@@ -1,66 +1,11 @@
-"""Provides Quad and QuadTreeNode classes used for spatial partitioning.
+"""Provides QuadTreeNode class used for spatial partitioning.
 
 QuadTreeNode is used to construct the Quad Tree which is needed in the Barnes-Hut
 algorithm for more efficient computation of forces in the N-body problem.
-QuadTreeNode utilizes Quad for keeping the dimensions of each node and subdivision
-of nodes.
 """
-
-import numpy as np
 
 from nbody.body import Body
 from nbody.renderer.abstract_renderer import AbstractRenderer
-
-class Quad:
-    """
-    Contains the dimensions of each bounding box for Nodes making up the Quadtree.
-
-    Attributes:
-        r: 2D coordinate of lower left corner
-        length: side length of quad
-    """
-    __slots__ = (
-        "x1", "x2", "y1", "y2", "length",
-        "midx", "midy", "se", "sw", "ne", "nw"
-    )
-    def __init__(self, x: float, y: float, length: float) -> None:
-        """
-        Initializes the quad with the location of the South West corner and side length.
-
-        :param rx: x position of left side of quad.
-        :param ry: y position of bottom side of quad.
-        :param length: length of quad side.
-        """
-        self.x1, self.x2 = x, x+length
-        self.y1, self.y2 = y, y+length
-        self.length = length
-        self.midx = self.x1 + self.length/2
-        self.midy = self.y1 + self.length/2
-
-        self.sw = None
-        self.se = None
-        self.nw = None
-        self.ne = None
-
-    def create_children(self):
-        """
-        Creates ne, nw, se, and sw quads for subdivision.
-        """
-
-        halflength = self.length/2
-
-        self.sw = Quad(self.x1, self.y1, halflength)
-        self.se = Quad(self.midx, self.y1, halflength)
-        self.nw = Quad(self.x1, self.midy, halflength)
-        self.ne = Quad(self.midx, self.midy, halflength)
-
-    def plot(self, renderer: AbstractRenderer):
-        """
-        Plots the quad to the screen.
-
-        :param renderer: Renderer used for plotting visuals.
-        """
-        renderer.draw_grid(self.x1, self.y1, self.length)
 
 
 class QuadTreeNode:
@@ -68,28 +13,37 @@ class QuadTreeNode:
     Used to construct a quadtree.
 
     Attributes:
-        quad: instance of Quad containing the dimensions of the region held by this node.
+        x1: x position of left side
+        x2: x position of right side
+        y1: y position of bottom side
+        y2: y position of top side
+        length: side length of node
         body: the body contained in this node, can be None.
         is_leaf: tells if this node is an exterior node.
         mass: sum of masses within this node.
-        com: 2 element array containing the position of the centre of mass of this node.
+        cx: x position of center of mass of this node
+        cy: y position of center of mass of this node
         sw: QuadTreeNode instance representing the South West child of this node.
         se: QuadTreeNode instance representing the South East child of this node.
         nw: QuadTreeNode instance representing the North West child of this node.
         ne: QuadTreeNode instance representing the North East child of this node.
     """
     __slots__ = (
-        "quad", "sw", "se", "nw", "ne",
+        "x1", "x2", "y1", "y2", "length",
+        "sw", "se", "nw", "ne",
         "body", "is_leaf", "mass", "cx", "cy"
     )
 
-    def __init__(self, quad : Quad) -> None:
+    def __init__(self, x: float, y: float, length: float) -> None:
         """
         Initializes a quadtree node with the quad dimensions.
 
         :param quad: the dimensions of the quad of this node.
         """
-        self.quad = quad
+
+        self.x1, self.x2 = x, x+length
+        self.y1, self.y2 = y, y+length
+        self.length = length
         self.sw : QuadTreeNode | None = None
         self.se : QuadTreeNode | None = None
         self.nw : QuadTreeNode | None = None
@@ -141,13 +95,15 @@ class QuadTreeNode:
         assert self.ne is not None
         assert self.nw is not None
 
-        if body.x >= self.quad.midx:
-            if body.y >= self.quad.midy:
+        midx = (self.x1 + self.x2)/2
+        midy = (self.y1 + self.y2)/2
+        if body.x >= midx:
+            if body.y >= midy:
                 return self.ne
             else:
                 return self.se
         else:
-            if body.y >= self.quad.midy:
+            if body.y >= midy:
                 return self.nw
             else:
                 return self.sw
@@ -161,11 +117,13 @@ class QuadTreeNode:
         """
         self.is_leaf = False
 
-        self.quad.create_children()
-        self.sw = QuadTreeNode(self.quad.sw)
-        self.se = QuadTreeNode(self.quad.se)
-        self.nw = QuadTreeNode(self.quad.nw)
-        self.ne = QuadTreeNode(self.quad.ne)
+        halflength = self.length/2
+        midx = (self.x1 + self.x2)/2
+        midy = (self.y1 + self.y2)/2
+        self.sw = QuadTreeNode(self.x1, self.y1, halflength)
+        self.se = QuadTreeNode(midx, self.y1, halflength)
+        self.nw = QuadTreeNode(self.x1, midy, halflength)
+        self.ne = QuadTreeNode(midx, midy, halflength)
 
 
     def plot(self, renderer: AbstractRenderer, plotquads: bool=False):
@@ -179,7 +137,7 @@ class QuadTreeNode:
             self.body.plot(renderer)
         if self.is_leaf:
             if plotquads:
-                self.quad.plot(renderer)
+                renderer.draw_grid(self.x1, self.y1, self.length)
         else:
             assert self.sw is not None
             assert self.se is not None

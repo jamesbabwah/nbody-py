@@ -37,16 +37,6 @@ class Body:
         self.mass = m
         self.force = np.array([0.0, 0.0])
 
-    def in_quad(self, quad):
-        """
-        Checks if Body is located in a given quad.
-
-        :param quad: the quad to be checked.
-        """
-        return ((quad.x1 <= self.x and quad.x2 >= self.x) and
-            (quad.y1 <= self.y and quad.y2 >= self.y))
-
-
     def plot(self, renderer: AbstractRenderer):
         """
         Plots body to the screen.
